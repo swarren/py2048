@@ -79,6 +79,7 @@ pos_lists_of_move = {
 
 def apply_move(board, move):
     pos_lists = pos_lists_of_move[move]
+    score_delta = 0
     for pos_list in pos_lists:
         dst = 0
         for src in range(len(pos_list)):
@@ -90,10 +91,11 @@ def apply_move(board, move):
         for i in range(len(pos_list[:-1])):
             if board[pos_list[i]] == board[pos_list[i + 1]]:
                 board[pos_list[i]] += board[pos_list[i + 1]]
+                score_delta += board[pos_list[i]]
                 for j in range(i + 1, len(pos_list) - 1):
                     board[pos_list[j]] = board[pos_list[j + 1]]
                 board[pos_list[-1]] = 0
-    return board
+    return board, score_delta
 
 move_dir_map = {
     'h': DIR_LEFT,
@@ -118,20 +120,22 @@ def get_apply_move(board):
             print('Unknown move (h/j/k/l/p/q)')
             continue
         move = move_dir_map[ch]
-        new_board = apply_move(board.copy(), move)
+        new_board, score_delta = apply_move(board.copy(), move)
         if new_board == board:
             print('Illegal move')
             continue
         break
     print()
-    return add_piece(new_board)
+    return add_piece(new_board), score_delta
 
 board = [0] * (ys * xs)
 board = add_piece(board)
+score = 0
 
 detect_2048 = True
 while True:
     print_board(board)
+    print('Score:', score)
     if detect_2048 and 2048 in board:
         while True:
             print('You win; Continue/Quit? ', end='')
@@ -155,4 +159,5 @@ while True:
     if not moves_left:
         print('You lose!')
         sys.exit(0)
-    board = get_apply_move(board)
+    board, score_delta = get_apply_move(board)
+    score += score_delta
